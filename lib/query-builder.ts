@@ -6,7 +6,7 @@ export class QueryBuilder {
 
   private $table: string;
   private $field: string[] = ['*'];
-  private $where: string;
+  private $where: string = '1=1';
   private $limit: number;
   private $offset: number;
   private $order: string;
@@ -49,12 +49,20 @@ export class QueryBuilder {
     return result;
   }
 
-  public async find(): Promise<object> {
+  public async findOrEmpty(): Promise<object> {
     if (!this.limit) {
       this.$limit = 1;
     }
-    const result = await this.select();
-    return result[0];
+    const result = (await this.select())[0];
+    return result;
+  }
+
+  public async find(): Promise<object> {
+    const result = await this.findOrEmpty();
+    if (!result) {
+      throw new Error(`${this.$table} find result is empty`);
+    }
+    return result;
   }
 
   public insert(data: object): number;

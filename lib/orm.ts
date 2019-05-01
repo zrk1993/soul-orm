@@ -78,7 +78,17 @@ export async function beginTx() {
   });
 
   return new Tx({
-    query,
+    query: async (sql: string): Promise<any> => {
+      return new Promise((resolve, reject) => {
+        conn.query(sql, (err: Error, results: any[]) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(results);
+          }
+        });
+      });
+    },
     commit: async () => {
       return new Promise((resolve, reject) => {
         conn.commit((err: Error) => {
