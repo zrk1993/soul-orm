@@ -1,7 +1,28 @@
 import * as mysql from 'mysql';
 import { QueryBuilder, Tx } from './';
 
-let pool: mysql.Pool;
+export const pool = mysql.createPool({
+  connectionLimit: 10,
+  host: 'localhost',
+  user: 'root',
+  password: 'Mysql@123qwer',
+  database: 'souljs',
+});
+
+pool.on('error', error => {
+  // tslint:disable-next-line:no-console
+  console.error('soul-orm: ', error.message);
+});
+
+pool.query('SELECT 1', error => {
+  if (error) {
+    // tslint:disable-next-line:no-console
+    console.error('soul-orm: ', error.message);
+  } else {
+    // tslint:disable-next-line:no-console
+    console.info('mysql连接成功！');
+  }
+});
 
 export async function query(sql: string, values?: any | mysql.QueryOptions, options?: mysql.QueryOptions): Promise<any[]> {
   let opt = null;
@@ -79,8 +100,4 @@ export async function beginTx() {
       });
     },
   });
-}
-
-export function init(p: mysql.Pool) {
-  pool = p;
 }
