@@ -23,7 +23,7 @@ export class QueryBuilder {
     this.queryFunction = queryFunction;
   }
 
-  public async select(): Promise<object[]> {
+  public async select(): Promise<any[]> {
     let sql = '';
     const inserts = [];
 
@@ -49,7 +49,7 @@ export class QueryBuilder {
     return result;
   }
 
-  public async findOrEmpty(): Promise<object> {
+  public async findOrEmpty(): Promise<any> {
     if (!this.limit) {
       this.$limit = 1;
     }
@@ -57,18 +57,18 @@ export class QueryBuilder {
     return result;
   }
 
-  public async find(): Promise<object> {
+  public async find(): Promise<any> {
     const result = await this.findOrEmpty();
     if (!result) {
-      throw new Error(`${this.$table} find result is empty`);
+      throw new Error(`${this.$table} is not found`);
     }
     return result;
   }
 
-  public insert(data: object): number;
-  public insert(data: object[]): void;
-  public insert(data: object | object[]): void | number {
-    const insertData: any = data[0] ? data : [data];
+  public async insert(data: any): Promise<number>;
+  public async insert(data: any[]): Promise<void>;
+  public async insert(param: any | any[]): Promise<any> {
+    const insertData: any[] = param[0] ? param : [param];
     const colums = Object.keys(insertData[0]);
     const values = insertData.map((item) => {
       return `(${colums.map(c => sqlstring.escape(item[c])).join(',')})`;
@@ -77,26 +77,39 @@ export class QueryBuilder {
     const sql = `INSERT INTO ?? (??) VALUES ${values.join(',')}`;
     const inserts = [this.$table, colums];
     this.sql = sqlstring.format(sql, inserts);
+    const result = await this.exec();
+    if (result.affectedRows !== insertData.length) {
+      throw new Error('affectedRows not equal data length!');
+    }
+    return result;
   }
 
-  public async update(data: object): Promise<void> {
+  public async update(data: any): Promise<void> {
     const keys = Object.keys(data);
-    const update = keys.map(key => `${sqlstring.escape(key)}=?}`).join(',');
+    const inserts = [this.$table];
+    const update = keys.map(key => {
+      inserts.push(key, data[key]);
+      return `??=?`;
+    }).join(',');
     const sql = `UPDATE ?? SET ${update} WHERE ${this.$where}`;
-    const inserts = [this.$table, ...keys.map(k => data[k])];
     this.sql = sqlstring.format(sql, inserts);
-    await this.exec();
+    const result = await this.exec();
+    return result.changedRows;
   }
 
-  public async delete(): Promise<void> {
+  public async delete(rows?: number): Promise<void> {
     const sql = `DELETE FROM ${this.$table} WHERE ${this.$where}`;
     const inserts = [this.$table];
     this.sql = sqlstring.format(sql, inserts);
-    await this.exec();
+    const result = await this.exec();
+    if (rows && result.affectedRows !== rows) {
+      throw new Error('affectedRows not equal rows!');
+    }
+    return result.affectedRows;
   }
 
-  public where(where: object): QueryBuilder;
-  public where(where: string, valus?: []): QueryBuilder;
+  public where(where: any): QueryBuilder;
+  public where(where: string, valus?: any[]): QueryBuilder;
   public where(...args: any): QueryBuilder {
     let sql = '';
     let values = [];
@@ -132,7 +145,7 @@ export class QueryBuilder {
     return this;
   }
 
-  private async exec(): Promise<void | any[]> {
+  private async exec(): Promise<void | any[] | any> {
     const result: any = await this.queryFunction(this.sql);
     return result;
   }
