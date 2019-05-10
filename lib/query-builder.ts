@@ -86,24 +86,42 @@ export class QueryBuilder {
 
   public async update(data: any): Promise<void> {
     const keys = Object.keys(data);
-    const inserts = [this.$table];
+    const inserts = [];
+    inserts.push(this.$table);
     const update = keys.map(key => {
       inserts.push(key, data[key]);
       return `??=?`;
     }).join(',');
-    const sql = `UPDATE ?? SET ${update} WHERE ${this.$where}`;
+    let sql = `UPDATE ?? SET ${update} WHERE ${this.$where}`;
+
+    if (this.$limit) {
+      sql += ` LIMIT ?`;
+      inserts.push(this.$limit);
+    }
+
     this.sql = sqlstring.format(sql, inserts);
     const result = await this.exec();
+    if (this.$limit && result.changedRows !== this.$limit) {
+      throw new Error('changedRows not equal limit!');
+    }
     return result.changedRows;
   }
 
-  public async delete(rows?: number): Promise<void> {
-    const sql = `DELETE FROM ${this.$table} WHERE ${this.$where}`;
-    const inserts = [this.$table];
+  public async delete(): Promise<void> {
+    let sql = `DELETE FROM ${this.$table} WHERE ${this.$where}`;
+    const inserts = [];
+    inserts.push(this.$table);
+
+    if (this.$limit) {
+      sql += ` LIMIT ?`;
+      inserts.push(this.$limit);
+    }
+
     this.sql = sqlstring.format(sql, inserts);
     const result = await this.exec();
-    if (rows && result.affectedRows !== rows) {
-      throw new Error('affectedRows not equal rows!');
+
+    if (this.$limit && result.affectedRows !== this.$limit) {
+      throw new Error('affectedRows not equal limit!');
     }
     return result.affectedRows;
   }
@@ -118,7 +136,7 @@ export class QueryBuilder {
       values = args[1];
     } else {
       const keys = Object.keys(args[0]);
-      sql = keys.map(key => `?? = ?`).join('AND');
+      sql = keys.map(() => `?? = ?`).join('AND');
       values = [];
       keys.forEach((key) => {
         values.push(key, args[0][key]);
