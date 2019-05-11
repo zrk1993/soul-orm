@@ -1,26 +1,28 @@
 import * as mysql from 'mysql';
 import { QueryBuilder, Tx } from './';
 
-export default class Orm {
+export class Orm {
   private pool: mysql.Pool;
+  private logger = console;
 
   constructor(poolConfig: mysql.PoolConfig) {
     this.pool = mysql.createPool(poolConfig);
 
     this.pool.on('error', error => {
-      // tslint:disable-next-line:no-console
-      console.error('soul-orm: ', error.message);
+      this.logger.error('soul-orm: ', error.message);
     });
     
     this.pool.query('SELECT 1', error => {
       if (error) {
-        // tslint:disable-next-line:no-console
-        console.error('soul-orm: ', error.message);
+        this.logger.error('soul-orm: ', error.message);
       } else {
-        // tslint:disable-next-line:no-console
-        console.info('mysql连接成功！');
+        this.logger.info('mysql连接成功！');
       }
     });
+  }
+
+  setLogger(logger: Console) {
+    this.logger = logger;
   }
 
   async query(sql: string, values?: any | mysql.QueryOptions, options?: mysql.QueryOptions): Promise<any[]> {
@@ -39,6 +41,7 @@ export default class Orm {
     return new Promise((resolve, reject) => {
       this.pool.query(opt, (err: Error, results: any[]) => {
         if (err) {
+          err.message += sql;
           reject(err);
         } else {
           resolve(results);
@@ -81,6 +84,7 @@ export default class Orm {
         return new Promise((resolve, reject) => {
           conn.query(sql, (err: Error, results: any[]) => {
             if (err) {
+              err.message += sql;
               reject(err);
             } else {
               resolve(results);
