@@ -1,4 +1,4 @@
-import Orm from './orm';
+import { Orm } from './orm';
 
 export const orm = new Orm({
   connectionLimit: 10,
