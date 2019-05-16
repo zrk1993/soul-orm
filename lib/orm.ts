@@ -1,18 +1,19 @@
 import * as mysql from 'mysql';
 import { QueryBuilder, Tx } from './';
 
+let pool: mysql.Pool;
+
 export class Orm {
-  private pool: mysql.Pool;
   private logger = console;
 
   constructor(poolConfig: mysql.PoolConfig) {
-    this.pool = mysql.createPool(poolConfig);
+    pool = mysql.createPool(poolConfig);
 
-    this.pool.on('error', error => {
+    pool.on('error', error => {
       this.logger.error('soul-orm: ', error.message);
     });
     
-    this.pool.query('SELECT 1', error => {
+    pool.query('SELECT 1', error => {
       if (error) {
         this.logger.error('soul-orm: ', error.message);
       } else {
@@ -39,7 +40,7 @@ export class Orm {
       opt = { sql };
     }
     return new Promise((resolve, reject) => {
-      this.pool.query(opt, (err: Error, results: any[]) => {
+      pool.query(opt, (err: Error, results: any[]) => {
         if (err) {
           err.message += sql;
           reject(err);
@@ -56,7 +57,7 @@ export class Orm {
 
   private async getPoolConnection(): Promise<mysql.PoolConnection> {
     return new Promise((res, rej) => {
-      this.pool.getConnection((err: Error, connection: mysql.PoolConnection) => {
+      pool.getConnection((err: Error, connection: mysql.PoolConnection) => {
         if (err) {
           rej(err);
         } else {
