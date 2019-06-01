@@ -5,7 +5,7 @@ export type IQueryFunction = (options: string) => Promise<any>;
 export class QueryBuilder {
 
   private $table: string;
-  private $field: string[] = ['*'];
+  private $field: string[];
   private $where: string = '1=1';
   private $limit: number;
   private $offset: number;
@@ -27,9 +27,9 @@ export class QueryBuilder {
     let sql = '';
     const inserts = [];
 
-    sql += `SELECT ?? FROM ?? WHERE ${this.$where}`;
+    sql += `SELECT ${this.$field ? '??' : '*'} FROM ${this.$table} WHERE ${this.$where}`;
 
-    inserts.push(this.$field, this.$table);
+    if (this.$field) inserts.push(this.$field);
 
     if (this.$order) {
       sql += ` ORDER BY ${this.$order}`;
