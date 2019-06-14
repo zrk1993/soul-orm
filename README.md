@@ -1,4 +1,4 @@
-
+mpm install soul-orm
 ``` typescript
     const users =  await db.table('user').where({ name: 'jake' }).order('age', 'desc').select();
     const users = await db.table('user').where('name = ?', ['jake']).limit(10, 20).select();
