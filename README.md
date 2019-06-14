@@ -15,7 +15,7 @@
     const tx = await db.beginTx();
     try {
       await tx.table('user').insert({ name: 'jake' });
-      await db.table('user').where({ name: 'jake' }).update({ name: 'new name' });
+      await tx.table('user').where({ name: 'jake' }).update({ name: 'new name' });
       await tx.commit();
     } catch (error) {
       await tx.rollback();
