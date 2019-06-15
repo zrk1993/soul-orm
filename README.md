@@ -1,31 +1,26 @@
+npm install soul-orm
 ``` typescript
-
-const user = await db.table('user').where('id = :id', { id: 1 }).find();
-const user = await db.table('user').where('id = ?', [1]).find();
-
-const users = await db.table('user').where({ id: 1 }).select();
-const users = await db.table('user').where('id = :id', { id: 1 }).select();
-const users = await db.table('user').where('id = ?', [1]).select();
-
-const users = await db.table('user').where({ id: 1 }).field('id, name', 'ta as c').select();
-
-const users = await db.table('user').where('id = ?', [1]).limit(10, 10).select();
-
-const users = await db.table('user').where('id = ?', [1]).limit(10, 10).order('id', 'desc').select();
-
-const users = await db.table('user').where('id = ?', [1]).limit(10, 10).order('id', 'desc').select();
-
-await db.table('user').insert({ name: 1 });
-await db.table('user').insert([ { name: 1 }, { name: 1 }, { name: 1 } ]);
-
-await db.table('user').where('').update({ name: 1 });
-
-await db.table('user').where('').delete();
-
-const tx = await db.tx();
-await tx.table('user').where({ id: 1 }).find();
-await tx.table('user').where('').delete();
-await tx.commit();
-await tx.rollback();
+    const users =  await db.table('user').where({ name: 'jake' }).order('age', 'desc').select();
+    const users = await db.table('user').where('name = ?', ['jake']).limit(10, 20).select();
+    const user = await db.table('user').where({ name: 'jake' }).field('name', 'age').find();
+    const user = await db.table('user').where({ name: 'jake' }).findOrEmpty();
+    // insert
+    await db.table('user').insert({ name: 'jake', age: '22' });
+    await db.table('user').insert([{ name: 'jake', age: '22' }, { name: 'jake', age: '22' }]);
+    // update
+    await db.table('user').where({ name: 'jake' }).update({ name: 'new name' });
+    // delete
+    await db.table('user').where({ name: 'jake' }).delete();
+    // transaction
+    const tx = await db.beginTx();
+    try {
+      await tx.table('user').insert({ name: 'jake' });
+      await tx.table('user').where({ name: 'jake' }).update({ name: 'new name' });
+      await tx.commit();
+    } catch (error) {
+      await tx.rollback();
+    }
+    // row query
+    const result = await db.query(`SELECT * FROM user U LEFT JOIN user_roles UR ON UR.user_id = U.id WHERE U.type = ?`, ['type']);
 
 ```
