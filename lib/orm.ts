@@ -1,10 +1,12 @@
 import * as mysql from 'mysql';
-import { QueryBuilder, Tx } from './';
+import { QueryBuilder, Tx, reCartesian } from './';
 
 let pool: mysql.Pool;
 
 export class Orm {
   private logger = console;
+
+  public reCartesian = reCartesian;
 
   constructor(poolConfig: mysql.PoolConfig) {
     pool = mysql.createPool(poolConfig);
