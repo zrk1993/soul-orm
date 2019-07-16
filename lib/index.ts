@@ -1,6 +1,6 @@
 export * from './query-builder';
 
-export * from './orm';
+export * from './dbm';
 
 export * from './tx';
 

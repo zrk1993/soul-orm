@@ -1,7 +1,5 @@
 /**
- * mysql关联查询的结果，可能是个笛卡尔积的形式，这种数据格式并不友好。
- * 这是个辅助工具，来改变这种状况, 要配合{ nestTables: true }使用
- * kun
+ * k
  * 2019-02-13
  */
 
@@ -22,6 +20,7 @@ export function reCartesian(dataList: any[], structure: IStructure, results: any
   dataList.forEach(row => {
     const [table, id] = structure.id.split('.');
     const key = row[table][id];
+    if (key === null) return;
     if (!keyMap[key]) {
       keyMap[key] = [];
       row[table].groups = () => keyMap[key];
@@ -36,7 +35,7 @@ export function reCartesian(dataList: any[], structure: IStructure, results: any
       const value = structure[key];
       const stru: any = Array.isArray(value) ? value[0] : value;
       results.forEach(row => {
-        const data = reCartesian(row.groups(), stru);
+        const data = reCartesian(row.groups(), typeof stru === 'string' ? { id: stru } : stru);
         row[key] = Array.isArray(value) ? data : data[0];
       });
     });

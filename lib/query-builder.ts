@@ -5,8 +5,8 @@ export type IQueryFunction = (options: string) => Promise<any>;
 export class QueryBuilder {
 
   private $table: string;
-  private $field: string[];
-  private $where: string = '1=1';
+  private $field: string[] = ['*'];
+  private $where: string;
   private $limit: number;
   private $offset: number;
   private $order: string;
@@ -19,7 +19,7 @@ export class QueryBuilder {
   }
 
   private constructor({ table, queryFunction }) {
-    this.$table = table;
+    this.$table = 't_' + table;
     this.queryFunction = queryFunction;
   }
 
@@ -27,15 +27,15 @@ export class QueryBuilder {
     let sql = '';
     const inserts = [];
 
-    sql += `SELECT ${this.$field ? '??' : '*'} FROM ${this.$table} WHERE ${this.$where}`;
+    sql += `SELECT ${this.$field.join(', ')} FROM ${this.$table}`;
 
-    if (this.$field) inserts.push(this.$field);
+    if (this.$where) sql += ` WHERE ${this.$where}`;
 
     if (this.$order) {
       sql += ` ORDER BY ${this.$order}`;
     }
 
-    if (this.$limit) {
+    if (typeof this.$limit !== 'undefined') {
       sql += ` LIMIT ?`;
       inserts.push(this.$limit);
       if (this.$offset) {
@@ -53,19 +53,19 @@ export class QueryBuilder {
     if (!this.limit) {
       this.$limit = 1;
     }
-    const result = (await this.select())[0];
+    const result = (await this.select())[0] || null;
     return result;
   }
 
   public async find(): Promise<any> {
     const result = await this.findOrEmpty();
     if (!result) {
-      throw new Error(`${this.$table} is not found`);
+      throw new Error(`Record lookup failed！`);
     }
     return result;
   }
 
-  public async insert(data: any): Promise<number>;
+  public async insert(data: any): Promise<any>;
   public async insert(data: any[]): Promise<void>;
   public async insert(param: any | any[]): Promise<any> {
     const insertData: any[] = param[0] ? param : [param];
@@ -92,7 +92,9 @@ export class QueryBuilder {
       inserts.push(key, data[key]);
       return `??=?`;
     }).join(',');
-    let sql = `UPDATE ?? SET ${update} WHERE ${this.$where}`;
+    let sql = `UPDATE ?? SET ${update}`;
+
+    if (this.$where) sql += ` WHERE ${this.$where}`;
 
     if (this.$limit) {
       sql += ` LIMIT ?`;
@@ -108,9 +110,10 @@ export class QueryBuilder {
   }
 
   public async delete(): Promise<void> {
-    let sql = `DELETE FROM ${this.$table} WHERE ${this.$where}`;
+    let sql = `DELETE FROM ${this.$table}`;
+    if (this.$where) sql += ` WHERE ${this.$where}`;
+
     const inserts = [];
-    inserts.push(this.$table);
 
     if (this.$limit) {
       sql += ` LIMIT ?`;
@@ -135,26 +138,29 @@ export class QueryBuilder {
       sql = args[0];
       values = args[1];
     } else {
-      const keys = Object.keys(args[0]);
-      sql = keys.map(() => `?? = ?`).join('AND');
+      const keys = Object.keys(args[0]).filter(k => args[0][k] !== undefined);
+      sql = keys.map(() => `?? = ?`).join(' AND ');
       values = [];
       keys.forEach((key) => {
         values.push(key, args[0][key]);
       });
     }
 
-    this.$where = sqlstring.format(sql, values);
+    if (this.$where) this.$where += ' AND ';
+    else this.$where = '';
+
+    this.$where += sqlstring.format(sql, values);
     return this;
   }
 
   public limit(limit: number, offset?: number) {
-    this.$limit = limit;
-    this.$offset = offset;
+    this.$limit = +limit;
+    this.$offset = +offset;
     return this;
   }
 
   public order(field: string, od: string) {
-    this.$order = `${sqlstring.escape(field)} ${sqlstring.escape(od)}`;
+    this.$order = `${field} ${od}`;
     return this;
   }
 
