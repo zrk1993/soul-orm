@@ -62,7 +62,7 @@ class QueryBuilder {
     insert(param) {
         return __awaiter(this, void 0, void 0, function* () {
             const insertData = param[0] ? param : [param];
-            const colums = Object.keys(insertData[0]);
+            const colums = Object.keys(insertData[0]).filter(k => insertData[0][k] !== undefined);
             const values = insertData.map((item) => {
                 return `(${colums.map(c => sqlstring.escape(item[c])).join(',')})`;
             });
@@ -78,7 +78,7 @@ class QueryBuilder {
     }
     update(data) {
         return __awaiter(this, void 0, void 0, function* () {
-            const keys = Object.keys(data);
+            const keys = Object.keys(data).filter(k => data[k] !== undefined);
             const inserts = [];
             inserts.push(this.$table);
             const update = keys.map(key => {

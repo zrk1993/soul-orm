@@ -69,7 +69,7 @@ export class QueryBuilder {
   public async insert(data: any[]): Promise<void>;
   public async insert(param: any | any[]): Promise<any> {
     const insertData: any[] = param[0] ? param : [param];
-    const colums = Object.keys(insertData[0]);
+    const colums = Object.keys(insertData[0]).filter(k => insertData[0][k] !== undefined);
     const values = insertData.map((item) => {
       return `(${colums.map(c => sqlstring.escape(item[c])).join(',')})`;
     });
@@ -85,7 +85,7 @@ export class QueryBuilder {
   }
 
   public async update(data: any): Promise<void> {
-    const keys = Object.keys(data);
+    const keys = Object.keys(data).filter(k => data[k] !== undefined);
     const inserts = [];
     inserts.push(this.$table);
     const update = keys.map(key => {
