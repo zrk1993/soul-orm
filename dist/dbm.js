@@ -72,7 +72,7 @@ class DBM {
         });
     }
     table(tb) {
-        return _1.QueryBuilder.table(tb, { queryFunction: this.query });
+        return _1.QueryBuilder.table(tb, { queryFunction: this.query.bind(this) });
     }
     getPoolConnection() {
         return __awaiter(this, void 0, void 0, function* () {

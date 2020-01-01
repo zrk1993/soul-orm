@@ -66,7 +66,7 @@ export class DBM {
   }
 
   table(tb: string): QueryBuilder {
-    return QueryBuilder.table(tb, { queryFunction: this.query });
+    return QueryBuilder.table(tb, { queryFunction: this.query.bind(this) });
   }
 
   private async getPoolConnection(): Promise<mysql.PoolConnection> {
