@@ -2,28 +2,27 @@ import * as mysql from 'mysql';
 import * as sqlstring from 'sqlstring';
 import { QueryBuilder, Tx, reCartesian } from '.';
 
-let pool: mysql.Pool;
-let isDebug = false;
-
 export class DBM {
   private logger = console;
+  private isDebug = false;
+  private pool: mysql.Pool;
 
   public reCartesian = reCartesian;
 
   constructor(poolConfig: mysql.PoolConfig & { isDebug: boolean }) {
-    isDebug = poolConfig.isDebug;
+    this.isDebug = poolConfig.isDebug;
 
-    pool = mysql.createPool(poolConfig);
+    this.pool = mysql.createPool(poolConfig);
 
-    pool.on('error', error => {
+    this.pool.on('error', error => {
       this.logger.error('soul-dbm: ', error.message);
     });
     
-    pool.query('SELECT 1', error => {
+    this.pool.query('SELECT 1', error => {
       if (error) {
         this.logger.error('soul-dbm: ', error.message);
       } else {
-        this.logger.info('mysql连接成功！');
+        this.logger.info('数据库'+ poolConfig.database +'连接成功！');
       }
     });
   }
@@ -54,8 +53,8 @@ export class DBM {
       opt = { sql };
     }
     return new Promise((resolve, reject) => {
-      pool.query(opt, (err: Error, results: any[]) => {
-        if (isDebug) console.info(opt.sql);
+      this.pool.query(opt, (err: Error, results: any[]) => {
+        if (this.isDebug) console.info(opt.sql);
         if (err) {
           err.message += sql;
           reject(err);
@@ -72,7 +71,7 @@ export class DBM {
 
   private async getPoolConnection(): Promise<mysql.PoolConnection> {
     return new Promise((res, rej) => {
-      pool.getConnection((err: Error, connection: mysql.PoolConnection) => {
+      this.pool.getConnection((err: Error, connection: mysql.PoolConnection) => {
         if (err) {
           rej(err);
         } else {

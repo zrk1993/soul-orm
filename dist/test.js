@@ -8,13 +8,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const orm_1 = require("./orm");
-exports.db = new orm_1.Orm({
+const dbm_1 = require("./dbm");
+exports.db = new dbm_1.DBM({
     connectionLimit: 10,
     host: 'localhost',
     user: 'root',
     password: 'Mysql@123qwer',
     database: 'souljs',
+    isDebug: true,
 });
 (() => __awaiter(this, void 0, void 0, function* () {
     exports.db.reCartesian([], { id: '' });

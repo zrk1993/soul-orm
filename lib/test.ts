@@ -1,11 +1,12 @@
-import { Orm } from './orm';
+import { DBM } from './dbm';
 
-export const db = new Orm({
+export const db = new DBM({
   connectionLimit: 10,
   host: 'localhost',
   user: 'root',
   password: 'Mysql@123qwer',
   database: 'souljs',
+  isDebug: true,
 });
 
 (async () => {

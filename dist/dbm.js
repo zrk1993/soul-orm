@@ -11,23 +11,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mysql = require("mysql");
 const sqlstring = require("sqlstring");
 const _1 = require(".");
-let pool;
-let isDebug = false;
 class DBM {
     constructor(poolConfig) {
         this.logger = console;
+        this.isDebug = false;
         this.reCartesian = _1.reCartesian;
-        isDebug = poolConfig.isDebug;
-        pool = mysql.createPool(poolConfig);
-        pool.on('error', error => {
+        this.isDebug = poolConfig.isDebug;
+        this.pool = mysql.createPool(poolConfig);
+        this.pool.on('error', error => {
             this.logger.error('soul-dbm: ', error.message);
         });
-        pool.query('SELECT 1', error => {
+        this.pool.query('SELECT 1', error => {
             if (error) {
                 this.logger.error('soul-dbm: ', error.message);
             }
             else {
-                this.logger.info('mysql连接成功！');
+                this.logger.info('数据库' + poolConfig.database + '连接成功！');
             }
         });
     }
@@ -58,8 +57,8 @@ class DBM {
                 opt = { sql };
             }
             return new Promise((resolve, reject) => {
-                pool.query(opt, (err, results) => {
-                    if (isDebug)
+                this.pool.query(opt, (err, results) => {
+                    if (this.isDebug)
                         console.info(opt.sql);
                     if (err) {
                         err.message += sql;
@@ -78,7 +77,7 @@ class DBM {
     getPoolConnection() {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((res, rej) => {
-                pool.getConnection((err, connection) => {
+                this.pool.getConnection((err, connection) => {
                     if (err) {
                         rej(err);
                     }
