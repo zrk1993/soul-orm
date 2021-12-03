@@ -19,9 +19,9 @@ export class Tx {
 
   async query(sql: string, values?: any, options?: any): Promise<any[]> {
     let opt = null;
-    if (arguments.length === 3) {
+    if (options) {
       opt = Object.assign(options, { sql, values });
-    } else if (arguments.length === 2) {
+    } else if (values) {
       if (Array.isArray(values)) {
         opt = { sql, values };
       } else {

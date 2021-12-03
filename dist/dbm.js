@@ -40,12 +40,12 @@ class DBM {
         this.logger = logger;
     }
     query(sql, values, options) {
-        return __awaiter(this, arguments, void 0, function* () {
+        return __awaiter(this, void 0, void 0, function* () {
             let opt = null;
-            if (arguments.length === 3) {
+            if (options) {
                 opt = Object.assign(options, { sql, values });
             }
-            else if (arguments.length === 2) {
+            else if (values) {
                 if (Array.isArray(values)) {
                     opt = { sql, values };
                 }
@@ -97,7 +97,7 @@ class DBM {
                         reject(err);
                     }
                     else {
-                        resolve();
+                        resolve(null);
                     }
                 });
             });
